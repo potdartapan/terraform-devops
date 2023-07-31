@@ -178,7 +178,7 @@ sudo git fetch origin
 sudo git checkout origin/main -- index.html
 ```
 
-## We can execute apply.yml pipeline to provision the resources and deploy Nginx Web Server. Copy and paste the public ip address of the virtual machine into the browser to visit the web server. 
+We can execute apply.yml pipeline to provision the resources and deploy Nginx Web Server. Copy and paste the public ip address of the virtual machine into the browser to visit the web server. 
 
 ## Conclusion
 
