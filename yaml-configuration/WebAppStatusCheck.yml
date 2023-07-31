@@ -1,0 +1,116 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+pool:
+  vmImage: ubuntu-latest
+variables:
+  bkstrgrg: 'tfstate'
+  bkstr: 'tfstatestrg0'
+  bkcontainer: 'tfstatecontainer'
+  bkstrkey: 'terraform.tfstate'
+  system.debug: true
+
+stages:
+  - stage: tfvalidate
+    jobs:
+      - job: validate
+        continueOnError: false 
+        steps:
+          - task: TerraformInstaller@0
+            inputs:
+              terraformVersion: '1.5.3'
+          - task: TerraformTaskV3@3
+            displayName: init
+            inputs:
+                provider: 'azurerm'
+                command: 'init'
+                backendServiceArm: 'TFAzureSC'
+                backendAzureRmResourceGroupName: 'tfstate'
+                backendAzureRmStorageAccountName: 'tfstatestrg0'
+                backendAzureRmContainerName: 'tfstatecontainer'
+                backendAzureRmKey: 'terraform.tfstate'
+          - task: TerraformTaskV3@3
+            displayName: validate
+            inputs:
+                provider: 'azurerm'
+                command: 'validate'
+          - task: TerraformTaskV3@3
+            displayName: plan
+            inputs:
+                provider: 'azurerm'
+                command: 'custom'
+                customCommand: 'plan'
+                commandOptions: '-out $(Pipeline.Workspace)/tfplan'
+                environmentServiceNameAzureRM: 'TFAzureSC'
+#          - task: PublishPipelineArtifacts@1
+#            inputs:
+#              pathtoPublish: '$(Build.SourcesDirectory)/tfplan'
+#              artifactName: 'terraformPlan'
+#              publishLocation: 'pipeline'
+          - task: Bash@3
+            displayName: LS
+            inputs:
+              targetType: 'inline'
+              script: |
+                ls $(Pipeline.Workspace)
+                terraform version
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(Pipeline.Workspace)/tfplan'
+              artifact: 'tfplan'
+              publishLocation: 'pipeline'
+  - stage: SecurityCheck
+    jobs:
+    - job: SecurityCheck
+      displayName: Install Checkov
+      steps: 
+      - script : |
+          pip install -U checkov
+        displayName: Install Checkov
+      - script : |
+          checkov \
+            --directory . \
+            --output junitxml \
+            --skip-download \
+            --compact \
+            --output-file-path $(Agent.TempDirectory) \
+            --soft-fail
+        displayName: Run Checkov
+        workingDirectory: $(System.DefaultWorkingDirectory)
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '**/*results_junitxml.xml'
+          searchFolder: $(Agent.TempDirectory)
+          testRunTitle: 'Publish Checkov report'
+          publishRunAttachments: true 
+          failTaskOnFailedTests: false
+  - stage: TFLint
+    jobs:
+      - job: TFLint
+        steps:
+          - task: CmdLine@2
+            inputs:
+              script: |
+                curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+                tflint --init
+                tflint > tflintoutput.txt
+                ls
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish TFLint output
+            condition: succeededOrFailed()
+            inputs:
+              artifact: 'tflintoutput'
+              targetPath: tflintoutput.txt
+              publishLocation: 'pipeline'  
+
+              
+
+          
+
