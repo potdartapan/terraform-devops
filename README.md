@@ -177,6 +177,9 @@ sudo git remote add origin http://github.com/potdartapan/webserver
 sudo git fetch origin
 sudo git checkout origin/main -- index.html
 ```
+
+## We can execute apply.yml pipeline to provision the resources and deploy Nginx Web Server. Copy and paste the public ip address of the virtual machine into the browser to visit the web server. 
+
 ## Conclusion
 
-The above solution successfully automates the provisioning and configuration of Nginx web server on Azure. Terraform is used to provision the infrastructure to cloud. Azure Devops is used to perform pre-commit checks using TFlint and Chekov and to execute the deployment. Infrastructure can be destroyed using the destroy.yml pipeline to ensure unwanted charged are not accrued.    
+The above solution successfully automates the provisioning and configuration of Nginx web server on Azure. Terraform is used to provision the infrastructure to cloud. Azure Devops is used to perform pre-commit checks using TFlint and Chekov and to execute the deployment. The web server can be accessed by visiting the public ip address of the virtual machine. Infrastructure can be destroyed using the destroy.yml pipeline to ensure unwanted charged are not accrued.    
