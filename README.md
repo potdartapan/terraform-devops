@@ -1,4 +1,4 @@
-## This project provides a solution following the enterprise best practices to automate the deployment of an Nginx web server in Azure. 
+## This project provides a solution following enterprise best practices to automate the deployment of an Nginx web server in Azure. 
 
 Terraform is used to deploy the infrastructure to provision the Nginx web server. Azure DevOps is used to create the CI/CD pipeline. The pipeline performs pre commit tests using TFLint, Chekov and Terraform validate to ensure the code is acceptable for production. Once the infrastructure has been created through the pipeline, a bash script is executed on the Virtual Machine to install Nginx and update the desired configuration. Web server file (HTML, CSS, JavaScript,) are pulled on the virtual machine and the web server becomes accessible through the internet.
 
